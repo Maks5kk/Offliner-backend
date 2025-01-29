@@ -1,6 +1,5 @@
 import { Response } from "express";
 import jwt from "jsonwebtoken";
-import { Types } from "mongoose";
 
 export const generateToken = (
   userId: string,

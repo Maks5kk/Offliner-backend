@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import User from "../models/user.model";
+import { StatusCodes } from "http-status-codes";
 
-export const protectRoute = async (
+export const authMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -10,20 +11,24 @@ export const protectRoute = async (
   try {
     const token = req.cookies.jwt;
     if (!token) {
-      res.status(401).json({ message: "Unauthorized - no token provided" });
+      res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: "Unauthorized - no token provided" });
       return;
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
 
     if (!decoded) {
-      res.status(401).json({ message: "Unauthorized - invalid token" });
+      res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: "Unauthorized - invalid token" });
       return;
     }
 
     const user = await User.findById(decoded.userId).select("-password");
     if (!user) {
-      res.status(404).json({ message: "User not found" });
+      res.status(StatusCodes.NOT_FOUND).json({ message: "User not found" });
       return;
     }
 
@@ -31,6 +36,8 @@ export const protectRoute = async (
     next();
   } catch (error) {
     console.error("Error in protectRoute middleware", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ message: "Internal Server Error" });
   }
 };

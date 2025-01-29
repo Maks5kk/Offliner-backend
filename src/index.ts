@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import { connectDB } from "./lib/db";
-import authRoutes from "./routes/auth.route";
+import routes from "./routes/routes";
 import cookieParser from "cookie-parser";
 
 dotenv.config();
@@ -14,7 +14,7 @@ app.use(cookieParser());
 
 connectDB();
 
-app.use("/api/auth", authRoutes);
+app.use("/api", routes);
 
 app.listen(PORT, () => {
   console.log("Server is live on port: ", PORT);

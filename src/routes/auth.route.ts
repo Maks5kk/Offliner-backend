@@ -1,17 +1,18 @@
-import express, { Request, Response } from "express";
+import express from "express";
 import {
   checkAuth,
   login,
   logout,
   signup,
 } from "../controllers/auth.controller";
-import { protectRoute } from "../middlewares/auth.middleware";
+import { authMiddleware } from "../middlewares/auth.middleware";
+import { validateSignup } from "../validators/auth.validator";
 
 const router = express.Router();
 
-router.post("/signup", signup);
+router.post("/signup", validateSignup, signup);
 router.post("/login", login);
 router.post("/logout", logout);
-router.get("/check", protectRoute, checkAuth);
+router.get("/check", authMiddleware, checkAuth);
 
 export default router;

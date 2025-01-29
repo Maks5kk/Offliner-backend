@@ -1,24 +1,27 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import User from "../models/user.model";
 import { generateToken } from "../lib/utils";
+import { StatusCodes } from "http-status-codes";
+import { validationResult } from "express-validator";
 
 export const signup = async (req: Request, res: Response): Promise<void> => {
-  //хз, правильные ли типы, но вроде как да
-  const { name, lastName, email, password } = req.body;
-
   try {
-    if (!name || !lastName || !email || !password) {
-      res.status(400).json({ message: "All fields are required" });
+    const errors = validationResult(req);
+    if (!errors.isEmpty) {
+      res.status(StatusCodes.BAD_REQUEST).json({ errors: errors.array() });
+      return;
     }
 
-    //проверка на существующего юзера
+    const { name, lastName, email, password } = req.body;
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      res.status(400).json({ message: "Email already exists" });
+      res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: "Email already exists" });
     }
 
-    //хэширование пароля
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -31,10 +34,14 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
 
     await newUser.save();
 
-    res.status(201).json({ message: "User created successfully" });
+    res
+      .status(StatusCodes.CREATED)
+      .json({ message: "User created successfully" });
   } catch (error) {
     console.error("Error in signup controller", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: "Internal Server Error" });
   }
 };
 
@@ -44,46 +51,54 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      res.status(400).json({ message: "Invalid credentials" });
+      res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: "Invalid credentials" });
       return;
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
     if (!isPasswordCorrect) {
-      res.status(400).json({ message: "Invalid password" });
+      res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: "Invalid credentials" });
     }
 
     generateToken(user._id.toString(), res);
 
-    res.status(200).json({
+    res.status(StatusCodes.OK).json({
       _id: user._id,
       name: user.name,
-      lastname: user.lastName,
+      lastName: user.lastName,
       email: user.email,
       profilePic: user.profilePic,
     });
   } catch (error) {
     console.error("Error in login controller", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: "Internal Server Error" });
   }
 };
 
 export const logout = async (req: Request, res: Response): Promise<void> => {
   try {
     res.cookie("jwt", "", { maxAge: 0 });
-    res.status(200).json({ message: "Logget out successfully!" });
+    res.status(StatusCodes.OK).json({ message: "Logged out successfully!" });
   } catch (error) {
     console.error("Error in logout controller", error);
-    res.status(500).json("Internal Server Error");
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json("Internal Server Error");
   }
 };
 
 export const checkAuth = async (req: Request, res: Response): Promise<void> => {
   try {
-    res.status(200).json((req as any).user);
+    res.status(StatusCodes.OK).json((req as any).user);
   } catch (error) {
     console.error("Error in checkAuth controller", error);
-    res.status(500).json({ message: " Internal Server Error" });
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: " Internal Server Error" });
   }
 };
