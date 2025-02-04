@@ -13,7 +13,7 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const { name, lastName, email, password } = req.body;
+    const { fullName, email, password } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -26,17 +26,21 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const newUser = new User({
-      name,
-      lastName,
+      fullName,
       email,
       password: hashedPassword,
     });
 
     await newUser.save();
 
-    res
-      .status(StatusCodes.CREATED)
-      .json({ message: "User created successfully" });
+    generateToken(newUser._id.toString(), res);
+
+    res.status(StatusCodes.OK).json({
+      _id: newUser._id,
+      fullName: newUser.fullName,
+      email: newUser.email,
+      profilePic: newUser.profilePic,
+    });
   } catch (error) {
     console.error("Error in signup controller", error);
     res
@@ -63,22 +67,24 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       res
         .status(StatusCodes.BAD_REQUEST)
         .json({ message: "Invalid credentials" });
+        return;
     }
 
     generateToken(user._id.toString(), res);
 
     res.status(StatusCodes.OK).json({
       _id: user._id,
-      name: user.name,
-      lastName: user.lastName,
+      fullName: user.fullName,
       email: user.email,
       profilePic: user.profilePic,
     });
+    return;
   } catch (error) {
     console.error("Error in login controller", error);
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ message: "Internal Server Error" });
+      return;
   }
 };
 
@@ -86,19 +92,23 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
   try {
     res.cookie("jwt", "", { maxAge: 0 });
     res.status(StatusCodes.OK).json({ message: "Logged out successfully!" });
+    return;
   } catch (error) {
     console.error("Error in logout controller", error);
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json("Internal Server Error");
+    return;
   }
 };
 
 export const checkAuth = async (req: Request, res: Response): Promise<void> => {
   try {
     res.status(StatusCodes.OK).json((req as any).user);
+    return;
   } catch (error) {
     console.error("Error in checkAuth controller", error);
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ message: " Internal Server Error" });
+      return;
   }
 };
