@@ -3,8 +3,7 @@ import mongoose, { Document, Schema, Model, Types } from "mongoose";
 export interface IUser extends Document {
   _id: Types.ObjectId;
   email: string;
-  name: string;
-  lastName: string;
+  fullName: string;
   password: string;
   profilePic?: string;
   createdAt?: Date;
@@ -19,11 +18,7 @@ const userSchema = new Schema<IUser>(
       unique: true,
       match: [/.+\@.+\..+/, "Please fill a valid email address"],
     },
-    name: {
-      type: String,
-      required: true,
-    },
-    lastName: {
+    fullName: {
       type: String,
       required: true,
     },
