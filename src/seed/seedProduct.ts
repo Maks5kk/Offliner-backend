@@ -6,6 +6,14 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+
+const CATEGORIES = [
+  "Laptop",
+  "Smartphone",
+  "Computer",
+];
+
+
 const COLORS = [
   "red",
   "blue",
@@ -24,32 +32,49 @@ const getRandomColors = (): string[] => {
   return faker.helpers.arrayElements(COLORS, colorCount);
 };
 
+const getRandomImage = (category: string): string => {
+  switch (category) {
+    case "Laptop":
+      return `https://prod-api.mediaexpert.pl/api/images/gallery/thumbnails/images/64/6432426/Laptop-APPLE-MacBook-Air-2024-01.jpg`;
+    case "Smartphone":
+      return `https://www.apple.com/pl/iphone/home/images/meta/iphone__kqge21l9n26q_og.png`;
+    case "Computer":
+      return `https://www.discount-computer.com/product_images/uploaded_images/computer-screen.jpg`;
+    default:
+      return `https://source.unsplash.com/640x480/?electronics`;
+  }
+};
+
+
 const seedProducts = async () => {
   try {
-    await Product.deleteMany();
+    await Product.deleteMany(); 
     console.log("Existing products removed");
 
-    const products = Array.from({ length: 100 }).map(() => ({
-      name: faker.commerce.productName(),
-      description: faker.commerce.productDescription(),
-      category: faker.commerce.department(),
-      stock: faker.number.int({ min: 1, max: 100 }),
-      image: `${faker.image.url({
-        width: 640,
-        height: 480,
-      })}?random=${faker.string.uuid()}`,
-      rating: faker.number.float({ min: 1, max: 5, fractionDigits: 1 }),
-      colors: getRandomColors(),
-      reviews: Array.from({
-        length: faker.number.int({ min: 0, max: 4 }),
-      }).map(() => ({
-        userId: new mongoose.Types.ObjectId(),
-        comment: faker.lorem.sentence(),
-        rating: faker.number.float({ min: 1, max: 5, fractionDigits: 1 }),
-      })),
-    }));
+    const products = Array.from({ length: 100 }).map(() => {
+      
+      const category = faker.helpers.arrayElement(CATEGORIES);
 
-    await Product.insertMany(products);
+      return {
+        name: faker.commerce.productName(),
+        description: faker.commerce.productDescription(),
+        category,
+        stock: faker.number.int({ min: 1, max: 100 }),
+        image: getRandomImage(category), 
+        price: faker.number.int({ min: 100, max: 700 }), 
+        rating: faker.number.float({ min: 1, max: 5, fractionDigits: 1 }),
+        colors: getRandomColors(),
+        reviews: Array.from({
+          length: faker.number.int({ min: 0, max: 4 }),
+        }).map(() => ({
+          userId: new mongoose.Types.ObjectId(),
+          comment: faker.lorem.sentence(),
+          rating: faker.number.float({ min: 1, max: 5, fractionDigits: 1 }),
+        })),
+      };
+    });
+
+    await Product.insertMany(products); 
     console.log("100 products created successfully!");
   } catch (error) {
     console.error("Error seeding products:", error);

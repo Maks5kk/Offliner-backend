@@ -16,6 +16,7 @@ export interface IProduct extends Document {
   stock: number;
   image: string;
   rating: number;
+  price: number;
   reviews: Review[];
   createdAt?: Date;
   updatedAt?: Date;
@@ -33,6 +34,10 @@ const productSchema = new Schema<IProduct>(
     },
     category: {
       type: String,
+      required: true,
+    },
+    price: {
+      type: Number,
       required: true,
     },
     colors: {
