@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import Product from "../models/product.model";
+import { type SortOrder } from "mongoose";
 
 export const getAllProducts = async (
   req: Request,
@@ -9,28 +10,19 @@ export const getAllProducts = async (
   try {
     const { search, price_from, price_to, category, rating, sort } = req.query;
 
-    let query: any = {};
+    const query = {
+      ...(search && { name: { $regex: search, $options: "i" } }),
+      ...(price_from &&
+        price_to && {
+          price: { $gte: Number(price_from), $lte: Number(price_to) },
+        }),
+      ...(category && { category }),
+      ...(rating && { rating: { $gte: Number(rating) } }),
+    };
 
-    if (search) {
-      query.name = { $regex: search, $options: "i" };
-    }
-    if (price_from && price_to) {
-      query.price = { $gte: Number(price_from), $lte: Number(price_to) };
-    }
-    if (category) {
-      query.category = category;
-    }
-    if (rating) {
-      query.rating = { $gte: Number(rating) };
-    }
-
-    const sortOptions: { [key: string]: "asc" | "desc" } = {};
-
-    if (sort === "asc") {
-      sortOptions.price = "asc";
-    } else if (sort === "desc") {
-      sortOptions.price = "desc";
-    }
+    const sortOptions: { price: SortOrder } | undefined = sort
+      ? { price: sort === "asc" ? 1 : -1 }
+      : undefined;
 
     const products = await Product.find(query).sort(sortOptions);
     res.status(StatusCodes.OK).json(products);

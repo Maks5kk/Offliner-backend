@@ -7,7 +7,7 @@ interface Review {
   rating: number;
 }
 
-export interface IProduct extends Document {
+export interface Product extends Document {
   _id: Types.ObjectId;
   name: string;
   description: string;
@@ -22,7 +22,7 @@ export interface IProduct extends Document {
   updatedAt?: Date;
 }
 
-const productSchema = new Schema<IProduct>(
+const productSchema = new Schema<Product>(
   {
     name: {
       type: String,
@@ -66,7 +66,7 @@ const productSchema = new Schema<IProduct>(
   { timestamps: true }
 );
 
-const Product: Model<IProduct> = mongoose.model<IProduct>(
+const Product: Model<Product> = mongoose.model<Product>(
   "Product",
   productSchema
 );
