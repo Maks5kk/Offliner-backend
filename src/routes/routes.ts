@@ -1,10 +1,12 @@
 import express from "express";
 import authRoutes from "./auth.route";
-import productRoute from "./product.route";
+import productRoutes from "./product.route";
+import cartRoutes from "./cart.route";
 
 const router = express.Router();
 
 router.use("/auth", authRoutes);
-router.use("/products", productRoute);
+router.use("/products", productRoutes);
+router.use("/cart", cartRoutes);
 
 export default router;
