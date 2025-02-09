@@ -24,7 +24,7 @@ export const getCart = async (req: Request, res: Response): Promise<void> => {
 
 export const addToCart = async (req: Request, res: Response): Promise<void> => {
   const userId = (req as any).user._id;
-  const { productId, quantity } = req.body;
+  const { productId, quantity, type } = req.body;
 
   try {
     let cart = await Cart.findOne({ userId });
@@ -39,7 +39,7 @@ export const addToCart = async (req: Request, res: Response): Promise<void> => {
 
     itemIndex > -1
       ? (cart.items[itemIndex].quantity += 1)
-      : cart.items.push({ productId, quantity });
+      : cart.items.push({ productId, quantity, type });
 
     await cart.save();
 

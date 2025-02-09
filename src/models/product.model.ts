@@ -7,6 +7,16 @@ interface Review {
   rating: number;
 }
 
+interface Specification {
+  label: string;
+  value: string;
+}
+
+interface Type {
+  label: string;
+  value: string;
+}
+
 export interface Product extends Document {
   _id: Types.ObjectId;
   name: string;
@@ -20,6 +30,8 @@ export interface Product extends Document {
   reviews: Review[];
   createdAt?: Date;
   updatedAt?: Date;
+  specifications: Specification[];
+  types: Type[];
 }
 
 const productSchema = new Schema<Product>(
@@ -58,8 +70,21 @@ const productSchema = new Schema<Product>(
     reviews: [
       {
         userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        fullName: { type: String },
         comment: { type: String },
         rating: { type: Number },
+      },
+    ],
+    specifications: [
+      {
+        label: { type: String },
+        value: { type: String },
+      },
+    ],
+    types: [
+      {
+        label: { type: String },
+        value: { type: String },
       },
     ],
   },

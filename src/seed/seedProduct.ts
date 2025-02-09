@@ -6,13 +6,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-
-const CATEGORIES = [
-  "Laptop",
-  "Smartphone",
-  "Computer",
-];
-
+const CATEGORIES = ["Laptop", "Smartphone", "Computer"];
 
 const COLORS = [
   "red",
@@ -45,36 +39,80 @@ const getRandomImage = (category: string): string => {
   }
 };
 
+const getUniqueRandomElement = <T>(array: T[]): T => {
+  const randomIndex = faker.number.int({ min: 0, max: array.length - 1 });
+  return array.splice(randomIndex, 1)[0];
+};
 
 const seedProducts = async () => {
   try {
-    await Product.deleteMany(); 
+    await Product.deleteMany();
     console.log("Existing products removed");
 
     const products = Array.from({ length: 100 }).map(() => {
-      
       const category = faker.helpers.arrayElement(CATEGORIES);
+
+      const specificationsLabels = [
+        "Processor",
+        "RAM",
+        "Storage",
+        "Display",
+        "Graphics",
+        "Battery Life",
+        "Operating System",
+      ];
+      const specificationsValues = [
+        "M1 Max 10-core CPU",
+        "Intel i9 12-core CPU",
+        "32GB Unified Memory",
+        "16GB DDR4",
+        "1TB SSD",
+        "2TB NVMe",
+        "16-inch Retina Display",
+        "14-inch Full HD Display",
+        "8GB GDDR6 Graphics",
+        "12 hours",
+        "macOS Ventura",
+        "Windows 11",
+      ];
+
+      const typesLabels = ["purple", "silver", "midnight", "gold", "blue"];
+      const typesValues = ["Purple", "Silver", "Midnight", "Gold", "Blue"];
 
       return {
         name: faker.commerce.productName(),
         description: faker.commerce.productDescription(),
         category,
         stock: faker.number.int({ min: 1, max: 100 }),
-        image: getRandomImage(category), 
-        price: faker.number.int({ min: 100, max: 700 }), 
+        image: getRandomImage(category),
+        price: faker.number.int({ min: 100, max: 700 }),
         rating: faker.number.float({ min: 1, max: 5, fractionDigits: 1 }),
         colors: getRandomColors(),
         reviews: Array.from({
-          length: faker.number.int({ min: 0, max: 4 }),
+          length: faker.number.int({ min: 1, max: 4 }),
         }).map(() => ({
-          userId: new mongoose.Types.ObjectId(),
+          fullName: faker.person.fullName(),
           comment: faker.lorem.sentence(),
           rating: faker.number.float({ min: 1, max: 5, fractionDigits: 1 }),
         })),
+        specifications: Array.from({
+          length: faker.number.int({ min: 4, max: 6 }),
+        }).map(() => ({
+          label: getUniqueRandomElement(specificationsLabels),
+          value: getUniqueRandomElement(specificationsValues),
+        })),
+        types: Array.from({ length: faker.number.int({ min: 2, max: 3 }) }).map(
+          () => ({
+            label: getUniqueRandomElement(typesLabels),
+            value: faker.helpers.slugify(
+              getUniqueRandomElement(typesValues).toLowerCase()
+            ),
+          })
+        ),
       };
     });
 
-    await Product.insertMany(products); 
+    await Product.insertMany(products);
     console.log("100 products created successfully!");
   } catch (error) {
     console.error("Error seeding products:", error);
