@@ -67,7 +67,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       res
         .status(StatusCodes.BAD_REQUEST)
         .json({ message: "Invalid credentials" });
-        return;
+      return;
     }
 
     generateToken(user._id.toString(), res);
@@ -84,7 +84,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ message: "Internal Server Error" });
-      return;
+    return;
   }
 };
 
@@ -109,6 +109,6 @@ export const checkAuth = async (req: Request, res: Response): Promise<void> => {
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ message: " Internal Server Error" });
-      return;
+    return;
   }
 };
