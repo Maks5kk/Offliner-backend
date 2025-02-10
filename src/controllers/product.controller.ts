@@ -40,8 +40,12 @@ export const getProductById = async (
   req: Request,
   res: Response
 ): Promise<void> => {
+  console.log(req.params.id);
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id).populate({
+      path: "reviews.userId",
+      select: "fullName",
+    });
     if (!product) {
       res
         .status(StatusCodes.BAD_REQUEST)
@@ -53,7 +57,7 @@ export const getProductById = async (
   } catch (error) {
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: "Internal Server Error" });
+      .json({ message: "Internal Server Error hgfdhfdgh" });
     return;
   }
 };
