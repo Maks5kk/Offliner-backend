@@ -6,7 +6,10 @@ export const getCart = async (req: Request, res: Response): Promise<void> => {
   const userId = (req as any).user._id;
 
   try {
-    const cart = await Cart.findOne({ userId }).populate("items.productId");
+    const cart = await Cart.findOne({ userId }).populate({
+      path: "items.productId",
+      select: "name price image stock",
+    });
     if (!cart) {
       res.status(401).json({ message: "Unauthorized" });
       return;
@@ -38,12 +41,19 @@ export const addToCart = async (req: Request, res: Response): Promise<void> => {
     );
 
     itemIndex > -1
-      ? (cart.items[itemIndex].quantity += 1)
+      ? (cart.items[itemIndex].quantity += quantity)
       : cart.items.push({ productId, quantity, type });
 
     await cart.save();
 
-    res.status(StatusCodes.OK).json({ message: "Product added to cart", cart });
+    const updatedCart = await Cart.findOne({ userId }).populate({
+      path: "items.productId",
+      select: "name price image stock",
+    });
+
+    res
+      .status(StatusCodes.OK)
+      .json({ message: "Product added to cart", cart: updatedCart });
     return;
   } catch (error) {
     res
@@ -57,8 +67,10 @@ export const removeFromCart = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { userId } = (req as any).user._id;
+  const userId = (req as any).user._id;
   const { productId } = req.body;
+
+  console.log(productId);
 
   try {
     const cart = await Cart.findOne({ userId });
@@ -68,11 +80,20 @@ export const removeFromCart = async (
       return;
     }
 
-    cart.items.filter((item) => item.productId.toString() !== productId);
+    cart.items = cart.items.filter(
+      (item) => item.productId.toString() !== productId
+    );
 
     await cart.save();
 
-    res.status(200).json({ message: "Product removed from cart", cart });
+    const updatedCart = await Cart.findOne({ userId }).populate({
+      path: "items.productId",
+      select: "name price image stock",
+    });
+
+    res
+      .status(200)
+      .json({ message: "Product removed from cart", cart: updatedCart });
     return;
   } catch (error) {
     res
