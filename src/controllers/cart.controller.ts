@@ -70,8 +70,6 @@ export const removeFromCart = async (
   const userId = (req as any).user._id;
   const { productId } = req.body;
 
-  console.log(productId);
-
   try {
     const cart = await Cart.findOne({ userId });
 
