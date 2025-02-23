@@ -8,7 +8,8 @@ export const getAllProducts = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { search, price_from, price_to, category, rating, sort } = req.query;
+    const { search, price_from, price_to, category, rating, sort, brand } =
+      req.query;
 
     const query = {
       ...(search && { name: { $regex: search, $options: "i" } }),
@@ -16,6 +17,7 @@ export const getAllProducts = async (
         price_to && {
           price: { $gte: Number(price_from), $lte: Number(price_to) },
         }),
+      ...(brand && { brand }),
       ...(category && { category }),
       ...(rating && { rating: { $gte: Number(rating) } }),
     };
@@ -41,6 +43,7 @@ export const getProductById = async (
   res: Response
 ): Promise<void> => {
   console.log(req.params.id);
+
   try {
     const product = await Product.findById(req.params.id).populate({
       path: "reviews.userId",
