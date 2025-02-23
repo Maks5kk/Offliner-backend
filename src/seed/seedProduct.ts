@@ -8,6 +8,8 @@ dotenv.config();
 
 const CATEGORIES = ["Laptop", "Smartphone", "Computer"];
 
+const BRAND = ['Apple', 'Xiaomi', 'Huawei', "Samsung", 'Bosch', 'Honor',]
+
 const COLORS = [
   "red",
   "blue",
@@ -51,6 +53,7 @@ const seedProducts = async () => {
 
     const products = Array.from({ length: 100 }).map(() => {
       const category = faker.helpers.arrayElement(CATEGORIES);
+      const brand = faker.helpers.arrayElement(BRAND);
 
       const specificationsLabels = [
         "Processor",
@@ -83,7 +86,9 @@ const seedProducts = async () => {
         name: faker.commerce.productName(),
         description: faker.commerce.productDescription(),
         category,
+        brand,
         stock: faker.number.int({ min: 1, max: 100 }),
+        discount: faker.number.int({ min: 0.1, max: 1 }),
         image: getRandomImage(category),
         price: faker.number.int({ min: 100, max: 700 }),
         rating: faker.number.float({ min: 1, max: 5, fractionDigits: 1 }),

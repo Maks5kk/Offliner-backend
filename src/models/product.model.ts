@@ -20,6 +20,8 @@ interface Type {
 export interface Product extends Document {
   _id: Types.ObjectId;
   name: string;
+  brand: string;
+  discount?: number;
   description: string;
   category: string;
   colors: [string];
@@ -40,6 +42,11 @@ const productSchema = new Schema<Product>(
       type: String,
       required: true,
     },
+    brand: {
+      type: String,
+      required: true,
+    },
+    discount: Number,
     description: {
       type: String,
       required: true,
