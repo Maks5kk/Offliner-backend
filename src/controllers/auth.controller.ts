@@ -112,3 +112,63 @@ export const checkAuth = async (req: Request, res: Response): Promise<void> => {
     return;
   }
 };
+
+export const updateProfile = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const userId = (req as any).user._id;
+  const { newFullName, newEmail, currentPassword, newPassword } = req.body;
+
+  const newImage = req.file?.path;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      res.status(StatusCodes.NOT_FOUND).json({ message: "User not found" });
+      return;
+    }
+
+    if (newEmail && newEmail !== user.email) user.email = newEmail;
+    if (newFullName && newFullName !== user.fullName)
+      user.fullName = newFullName;
+
+    if (currentPassword && newPassword) {
+      const isPasswordCorrect = await bcrypt.compare(
+        currentPassword,
+        user.password
+      );
+      if (!isPasswordCorrect) {
+        res
+          .status(StatusCodes.UNAUTHORIZED)
+          .json({ message: "Current password is incorrect" });
+        return;
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(newPassword, salt);
+    }
+
+    if (newImage) {
+      user.profilePic = `${req.protocol}://${req.get("host")}/uploads/${
+        req.file?.filename
+      }`;
+    }
+
+    await user.save();
+
+    res.status(StatusCodes.OK).json({
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      profilePic: user.profilePic,
+      message: "Profile updated successfully",
+    });
+  } catch (error) {
+    console.error("Error in updateProfile controller", error);
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: "Internal Server Error" });
+  }
+};
