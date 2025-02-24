@@ -3,7 +3,9 @@ import bcrypt from "bcryptjs";
 import User from "../models/user.model";
 import { generateToken } from "../lib/utils";
 import { StatusCodes } from "http-status-codes";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { validationResult } from "express-validator";
+import { transporter } from "../lib/transporter";
 
 export const signup = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -170,5 +172,63 @@ export const updateProfile = async (
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ message: "Internal Server Error" });
+  }
+};
+
+export const forgotPassword = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { email } = req.body.data;
+  console.log(email);
+  const user = await User.findOne({ email });
+  if (!user) {
+    res.status(StatusCodes.NOT_FOUND).json({ message: "User not found!" });
+    return;
+  }
+
+  const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
+    expiresIn: "24h",
+  });
+
+  const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
+
+  await transporter.sendMail({
+    to: email,
+    subject: "Password reset",
+    html: `<p>Нажмите <a href="${resetLink}">здесь</a>, чтобы сбросить пароль.</p>`,
+  });
+
+  res.status(StatusCodes.OK).json({ message: "Mail has been sended!" });
+  return;
+};
+
+export const resetPassword = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { token, newPassword } = req.body;
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    console.log(decoded.userId);
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      res.status(StatusCodes.NOT_FOUND).json({ message: "User not found!" });
+      return;
+    }
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.password = hashedPassword;
+
+    await user.save();
+    res.status(StatusCodes.OK).json({ message: "Password has been changed!" });
+    return;
+  } catch (error) {
+    res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ message: "Invalid or expired token!" });
+    return;
   }
 };
