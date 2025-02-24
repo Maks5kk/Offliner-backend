@@ -40,7 +40,6 @@ export const getProductById = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  console.log(req.params.id);
   try {
     const product = await Product.findById(req.params.id).populate({
       path: "reviews.userId",

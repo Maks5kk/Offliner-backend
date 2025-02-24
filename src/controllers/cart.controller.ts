@@ -101,11 +101,10 @@ export const removeFromCart = async (
 };
 
 export const clearCart = async (req: Request, res: Response): Promise<void> => {
-  const { userId } = (req as any).user._id;
+  const userId = (req as any).user._id;
 
   try {
-    const cart = await Cart.findOne({ userId });
-
+    const cart = await Cart.findById(userId);
     if (!cart) {
       res.status(StatusCodes.NOT_FOUND).json({ message: "Cart not found" });
       return;
